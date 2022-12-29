@@ -6,11 +6,7 @@ const arcanaSchema = new Schema({
         type: String,
         required: true
     },
-    weapon: {
-        type: String,
-        required: true
-    },
-    passive: {
+    effect: {
         type: String,
         required: true
     },
@@ -18,17 +14,9 @@ const arcanaSchema = new Schema({
         type: String,
         required: true
     },
-    cost: {
-        type: Number,
+    notes: {
+        type: String,
         required: true
-    },
-    baseStats: {
-        type: Object,
-        required: true
-    },
-    secret: {
-        type: Boolean,
-        default: false
     }
 }, {
     timestamps: true

@@ -1,41 +1,83 @@
-const express = require('express');
+const express = require("express");
 const arcanaRouter = express.Router();
 
-arcanaRouter.route('/')
-.get((req, res) => {
-    res.end('Will send all the arcanas to you');
-})
-.post((req, res) => {
-    res.end(`Will add the arcana: ${req.body.name} with description: ${req.body.description}`);
-})
-.put((req, res) => {
-    res.statusCode = 403;
-    res.end('PUT operation not supported on /arcanas');
-})
-.delete((req, res) => {
-    res.end('Deleting all arcanas');
-});
+const Arcana = require("../models/arcana");
 
-arcanaRouter.route('/:arcanaId')
-.all((req, res, next) => {
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'text/plain');
-    next();
-})
-.get((req, res) => {
-    res.end(`Will send details of the arcana: ${req.params.arcanaId} to you`);
-})
-.post((req, res) => {
-    res.statusCode = 403;
-    res.end(`POST operation not supported on /arcanas/${req.params.arcanaId}`);
-})
-.put((req, res) => {
-    res.write(`Updating the arcana: ${req.params.arcanaId}\n`);
-    res.end(`Will update the arcana: ${req.body.name}
-        with description: ${req.body.description}`);
-})
-.delete((req, res) => {
-    res.end(`Deleting arcana: ${req.params.arcanaId}`);
-})
+arcanaRouter
+    .route("/")
+    .get((req, res, next) => {
+        Arcana.find()
+            .then((arcanas) => {
+                res.statusCode = 200;
+                res.setHeader(
+                    "Content-Type",
+                    "application/json",
+                );
+                res.json(arcanas);
+            })
+            .catch((err) => next(err));
+    })
+    .post((req, res, next) => {
+        Arcana.create(req.body)
+            .then((arcana) => {
+                res.statusCode = 201;
+                res.setHeader(
+                    "Content-Type",
+                    "application/json",
+                );
+                res.json(arcana);
+            })
+            .catch((err) => next(err));
+    })
+    .put((req, res) => {
+        res.statusCode = 403;
+        res.end("PUT operation not supported on /arcanas");
+    })
+    .delete((req, res) => {
+        Arcana.deleteMany().then((response) => {
+            res.statusCode = 200;
+            res.setHeader(
+                "Content-Type",
+                "application/json",
+            );
+            res.json(response);
+        });
+    });
+
+arcanaRouter
+    .route("/:arcanaId")
+    .get((req, res, next) => {
+        Arcana.findById(req.params.arcanaId).then(
+            (arcana) => {
+                res.statusCode = 200;
+                res.setHeader(
+                    "Content-Type",
+                    "application/json",
+                );
+                res.json(arcana);
+            },
+        );
+    })
+    .post((req, res) => {
+        res.statusCode = 403;
+        res.end(
+            `POST operation not supported on /arcanas/${req.params.arcanaId}`,
+        );
+    })
+    .put((req, res) => {
+        Arcana.findByIdAndUpdate(
+            req.params.arcanaId,
+            { $set: req.body },
+            { new: true },
+        );
+    })
+    .delete((req, res) => {
+        Arcana.findByIdAndDelete(req.params.arcanaId)
+        .then(response => {
+            res.statusCode = 200;
+            res.setHeader("Content-Type","application/json");
+            res.json(response);
+        }) 
+    });
 
 module.exports = arcanaRouter;
