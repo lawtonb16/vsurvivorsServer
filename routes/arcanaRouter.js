@@ -64,12 +64,13 @@ arcanaRouter
             `POST operation not supported on /arcanas/${req.params.arcanaId}`,
         );
     })
-    .put((req, res) => {
+    .put((req, res, next) => {
         Arcana.findByIdAndUpdate(
             req.params.arcanaId,
             { $set: req.body },
             { new: true },
-        );
+        )
+        .catch(err => next(err))
     })
     .delete((req, res) => {
         Arcana.findByIdAndDelete(req.params.arcanaId)
