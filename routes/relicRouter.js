@@ -1,46 +1,87 @@
 const express = require('express');
 const relicRouter = express.Router();
 
+const Relic = require("../models/relic");
+
 relicRouter.route('/')
-.all((req, res, next) => {
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'text/plain');
-    next();
-})
 .get((req, res) => {
-    res.end('Will send all the relics to you');
+    Relic.find()
+    .then(relics => {
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "application/json");
+        res.json(relics);
+    })
 })
 .post((req, res) => {
-    res.end(`Will add the relic: ${req.body.name} with description: ${req.body.description}`);
+    Relic.create(req.body)
+    .then((relic) => {
+        res.statusCode = 201;
+        res.setHeader(
+            "Content-Type",
+            "application/json",
+        );
+        res.json(relic);
+    })
+    .catch((err) => next(err));
 })
 .put((req, res) => {
     res.statusCode = 403;
     res.end('PUT operation not supported on /relics');
 })
 .delete((req, res) => {
-    res.end('Deleting all relics');
+    Relic.deleteMany()
+    .then((response) => {
+        res.statusCode = 200;
+        res.setHeader(
+            "Content-Type",
+            "application/json",
+        );
+        res.json(response);
+    })
+    .catch((err) => next(err));
 });
 
 relicRouter.route('/:relicId')
-.all((req, res, next) => {
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'text/plain');
-    next();
-})
 .get((req, res) => {
-    res.end(`Will send details of the relic: ${req.params.relicId} to you`);
+    Relic.findById(req.params.relicId).then(
+        (relic) => {
+            res.statusCode = 200;
+            res.setHeader(
+                "Content-Type",
+                "application/json",
+            );
+            res.json(relic);
+        },
+    ).catch(err => next(err));
 })
 .post((req, res) => {
     res.statusCode = 403;
     res.end(`POST operation not supported on /relics/${req.params.relicId}`);
 })
-.put((req, res) => {
-    res.write(`Updating the relic: ${req.params.relicId}\n`);
-    res.end(`Will update the relic: ${req.body.name}
-        with description: ${req.body.description}`);
+.put((req, res, next) => {
+    Relic.findByIdAndUpdate(
+        req.params.relicId,
+        { $set: req.body },
+        { new: true },
+    ).then((PowerUp) => {
+        res.statusCode = 200;
+        res.setHeader(
+            "Content-Type",
+            "application/json",
+        );
+    }).catch(err => next(err));
 })
-.delete((req, res) => {
-    res.end(`Deleting relic: ${req.params.relicId}`);
+.delete((req, res, next) => {
+    Relic.findByIdAndDelete(
+        req.params.relicId,
+    ).then((response) => {
+        res.statusCode = 200;
+        res.setHeader(
+            "Content-Type",
+            "application/json",
+        );
+        res.json(response);
+    }).catch(err => next(err));
 })
 
 module.exports = relicRouter;

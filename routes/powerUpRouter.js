@@ -1,46 +1,95 @@
-const express = require('express');
+const express = require("express");
 const powerUpRouter = express.Router();
 
-powerUpRouter.route('/')
-.all((req, res, next) => {
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'text/plain');
-    next();
-})
-.get((req, res) => {
-    res.end('Will send all the power ups to you');
-})
-.post((req, res) => {
-    res.end(`Will add the power up: ${req.body.name} with description: ${req.body.description}`);
-})
-.put((req, res) => {
-    res.statusCode = 403;
-    res.end('PUT operation not supported on /power ups');
-})
-.delete((req, res) => {
-    res.end('Deleting all power ups');
-});
+const PowerUp = require("../models/powerUp");
 
-powerUpRouter.route('/:powerUpId')
-.all((req, res, next) => {
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'text/plain');
-    next();
-})
-.get((req, res) => {
-    res.end(`Will send details of the power up: ${req.params.powerUpId} to you`);
-})
-.post((req, res) => {
-    res.statusCode = 403;
-    res.end(`POST operation not supported on /power ups/${req.params.powerUpId}`);
-})
-.put((req, res) => {
-    res.write(`Updating the power up: ${req.params.powerUpId}\n`);
-    res.end(`Will update the power up: ${req.body.name}
-        with description: ${req.body.description}`);
-})
-.delete((req, res) => {
-    res.end(`Deleting power up: ${req.params.powerUpId}`);
-})
+powerUpRouter
+    .route("/")
+    .get((req, res, next) => {
+        PowerUp.find()
+            .then((characters) => {
+                res.statusCode = 200;
+                res.setHeader(
+                    "Content-Type",
+                    "application/json",
+                );
+                res.json(characters);
+            })
+            .catch((err) => next(err));
+    })
+    .post((req, res, next) => {
+        PowerUp.create(req.body)
+            .then((character) => {
+                res.statusCode = 201;
+                res.setHeader(
+                    "Content-Type",
+                    "application/json",
+                );
+                res.json(character);
+            })
+            .catch((err) => next(err));
+    })
+    .put((req, res) => {
+        res.statusCode = 403;
+        res.end("PUT operation not supported on /enemies");
+    })
+    .delete((req, res, next) => {
+        PowerUp.deleteMany()
+            .then((response) => {
+                res.statusCode = 200;
+                res.setHeader(
+                    "Content-Type",
+                    "application/json",
+                );
+                res.json(response);
+            })
+            .catch((err) => next(err));
+    });
+
+powerUpRouter
+    .route("/:powerUpId")
+    .get((req, res, next) => {
+        PowerUp.findById(req.params.powerUpId).then(
+            (PowerUp) => {
+                res.statusCode = 200;
+                res.setHeader(
+                    "Content-Type",
+                    "application/json",
+                );
+                res.json(PowerUp);
+            },
+        ).catch(err => next(err));
+    })
+    .post((req, res) => {
+        res.statusCode = 403;
+        res.end(
+            `POST operation not supported on /enemies/${req.params.powerUpId}`,
+        );
+    })
+    .put((req, res) => {
+        PowerUp.findByIdAndUpdate(
+            req.params.powerUpId,
+            { $set: req.body },
+            { new: true },
+        ).then((PowerUp) => {
+            res.statusCode = 200;
+            res.setHeader(
+                "Content-Type",
+                "application/json",
+            );
+        });
+    })
+    .delete((req, res) => {
+        PowerUp.findByIdAndDelete(
+            req.params.powerUpId,
+        ).then((response) => {
+            res.statusCode = 200;
+            res.setHeader(
+                "Content-Type",
+                "application/json",
+            );
+            res.json(response);
+        });
+    });
 
 module.exports = powerUpRouter;
